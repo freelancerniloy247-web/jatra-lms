@@ -1,0 +1,43 @@
+import { SignJWT, jwtVerify } from "jose";
+import { cookies } from "next/headers";
+
+const SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "dev-secret-change-me"
+);
+
+export type SessionUser = {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+};
+
+export async function createSession(user: SessionUser) {
+  const token = await new SignJWT({ ...user })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("30d")
+    .sign(SECRET);
+
+  cookies().set("session", token, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30,
+  });
+}
+
+export async function getSession(): Promise<SessionUser | null> {
+  const token = cookies().get("session")?.value;
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, SECRET);
+    return payload as unknown as SessionUser;
+  } catch {
+    return null;
+  }
+}
+
+export function clearSession() {
+  cookies().delete("session");
+}

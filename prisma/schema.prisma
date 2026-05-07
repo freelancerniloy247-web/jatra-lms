@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String       @id @default(cuid())
+  name         String
+  email        String       @unique
+  phone        String?
+  password     String
+  role         String       @default("APPLICANT") // APPLICANT, STUDENT, MENTOR, ADMIN
+  city         String?
+  createdAt    DateTime     @default(now())
+  applications Application[]
+}
+
+model Bootcamp {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  nameBn      String
+  nameEn      String
+  taglineBn   String
+  taglineEn   String
+  durationMonths Int
+  priceBdt    Int
+  emiMonthly  Int
+  hours       Int
+  liveClasses Int
+  projects    Int
+  placement   Int      // percent
+  iconKey     String
+  heroImage   String
+  description String
+  outcomes    String   // JSON array of outcomes
+  curriculum  String   // JSON: months -> details
+  schedule    String   // JSON: weekly schedule
+  tools       String   // JSON: tools list
+  nextBatchDate DateTime
+  seatsTotal    Int
+  seatsRemaining Int
+  applications Application[]
+}
+
+model Application {
+  id           String   @id @default(cuid())
+  applicantId  String
+  applicant    User     @relation(fields: [applicantId], references: [id])
+  bootcampId   String
+  bootcamp     Bootcamp @relation(fields: [bootcampId], references: [id])
+  status       String   @default("SUBMITTED") // SUBMITTED, SCREENING, INTERVIEW, ACCEPTED, REJECTED, ENROLLED
+  fullNameBn   String
+  fullNameEn   String
+  dob          String?
+  gender       String?
+  city         String
+  education    String
+  institution  String?
+  gradYear     Int?
+  currentStatus String
+  experience   String
+  motivation   String
+  goal         String
+  source       String
+  hoursCommit  Boolean
+  schedulePref String
+  hardware     String
+  internet     String
+  screeningScore Int?
+  interviewAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Mentor {
+  id          String @id @default(cuid())
+  slug        String @unique
+  nameBn      String
+  nameEn      String
+  designation String
+  company     String
+  companyLogo String
+  photo       String
+  yearsExp    Int
+  bio         String
+  expertise   String // JSON array
+  tracks      String // JSON array of bootcamp slugs
+  linkedin    String?
+  twitter     String?
+}
+
+model Alumni {
+  id          String @id @default(cuid())
+  slug        String @unique
+  nameBn      String
+  nameEn      String
+  photo       String
+  beforeRole  String
+  afterRole   String
+  company     String
+  companyLogo String
+  salary      Int
+  salaryGrowth String // e.g. "3x"
+  trackSlug   String
+  batch       String
+  quote       String
+  story       String
+  featured    Boolean @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Cohort {
+  id           String   @id @default(cuid())
+  bootcampSlug String
+  number       Int
+  startDate    DateTime
+  endDate      DateTime
+  schedule     String
+  seatsTotal   Int
+  seatsFilled  Int
+  status       String   @default("UPCOMING") // UPCOMING, ACTIVE, COMPLETED
+}
+
+model BlogPost {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  titleBn   String
+  titleEn   String
+  excerpt   String
+  cover     String
+  author    String
+  authorPhoto String
+  category  String
+  readMin   Int
+  body      String
+  publishedAt DateTime @default(now())
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}

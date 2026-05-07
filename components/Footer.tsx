@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Linkedin, Facebook, Youtube, Instagram, Twitter, MessagesSquare } from "lucide-react";
+import { Linkedin, Facebook, Youtube, Instagram, Twitter, MessagesSquare, Code2, ArrowUpRight } from "lucide-react";
 import { BOOTCAMPS, PAYMENT_PARTNERS } from "@/lib/data";
 
 export default function Footer() {
@@ -105,24 +105,46 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-6 pt-5 border-t border-border/40 text-center text-xs text-ink-dim">
-          Developed by{" "}
+        <div className="mt-8 pt-6 border-t border-border/40 flex justify-center">
           <a
             href="https://nasifahammedniloy.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gold hover:text-gold-soft transition link-underline font-semibold"
+            aria-label="Developed by Niloy — nasifahammedniloy.com"
+            className="group relative inline-flex items-center gap-3 px-4 py-2.5 rounded-full glass border border-white/8 hover:border-gold/40 transition-all duration-300 hover:-translate-y-0.5"
           >
-            Niloy
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://nasifahammedniloy.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="num-mono hover:text-ink transition"
-          >
-            nasifahammedniloy.com
+            {/* shimmer sweep on hover */}
+            <span
+              aria-hidden
+              className="absolute inset-0 rounded-full overflow-hidden pointer-events-none"
+            >
+              <span
+                className="absolute inset-y-0 -left-1/2 w-1/3 bg-gradient-to-r from-transparent via-gold/15 to-transparent translate-x-0 group-hover:translate-x-[400%] transition-transform duration-[1100ms] ease-out"
+              />
+            </span>
+
+            {/* monogram */}
+            <span className="relative h-7 w-7 rounded-full bg-gold-gradient grid place-items-center text-bg text-[11px] font-black shadow-gold shrink-0">
+              N
+            </span>
+
+            <span className="relative leading-tight text-left">
+              <span className="flex items-center gap-1.5">
+                <Code2 className="h-3 w-3 text-gold/80" />
+                <span className="text-[10px] uppercase tracking-[0.2em] text-ink-muted group-hover:text-ink transition">
+                  Crafted by
+                </span>
+              </span>
+              <span className="flex items-center gap-1 mt-0.5">
+                <span className="bn-serif text-sm font-extrabold text-ink">Nasif Ahammed Niloy</span>
+                <ArrowUpRight className="h-3.5 w-3.5 text-gold opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+              </span>
+            </span>
+
+            <span className="relative hidden sm:block h-7 w-px bg-border/60" />
+            <span className="relative hidden sm:block num-mono text-[10px] text-ink-muted group-hover:text-gold transition">
+              nasifahammedniloy.com
+            </span>
           </a>
         </div>
       </div>

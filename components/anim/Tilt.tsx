@@ -17,11 +17,13 @@ export default function Tilt({
   const glareRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const wrap = wrapRef.current;
-    const inner = innerRef.current;
-    if (!wrap || !inner) return;
     if (typeof window === "undefined") return;
     if (window.matchMedia("(pointer: coarse)").matches) return;
+    const wrapEl = wrapRef.current;
+    const innerEl = innerRef.current;
+    if (!wrapEl || !innerEl) return;
+    const wrap: HTMLDivElement = wrapEl;
+    const inner: HTMLDivElement = innerEl;
 
     let raf = 0;
     let scheduled = false;
@@ -39,9 +41,7 @@ export default function Tilt({
       cur.ry += (target.ry - cur.ry) * 0.2;
       cur.gx += (target.gx - cur.gx) * 0.2;
       cur.gy += (target.gy - cur.gy) * 0.2;
-      if (inner) {
-        inner.style.transform = `rotateX(${cur.rx.toFixed(2)}deg) rotateY(${cur.ry.toFixed(2)}deg)`;
-      }
+      inner.style.transform = `rotateX(${cur.rx.toFixed(2)}deg) rotateY(${cur.ry.toFixed(2)}deg)`;
       if (glareRef.current) {
         glareRef.current.style.background = `radial-gradient(circle at ${cur.gx.toFixed(0)}% ${cur.gy.toFixed(0)}%, rgba(232,179,61,0.18), transparent 50%)`;
       }

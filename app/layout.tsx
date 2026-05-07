@@ -11,7 +11,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import UtilityBar from "@/components/UtilityBar";
 import FloatingActions from "@/components/FloatingActions";
-import ScrollProgress from "@/components/anim/ScrollProgress";
 import PageTransition from "@/components/anim/PageTransition";
 import CommandPalette from "@/components/CommandPalette";
 
@@ -81,7 +80,6 @@ export default function RootLayout({
       className={`${hind.variable} ${notoSerifBn.variable} ${jakarta.variable} ${fraunces.variable} ${jetbrains.variable}`}
     >
       <body className="bn-body">
-        <ScrollProgress />
         <UtilityBar />
         <Navbar />
         <PageTransition>

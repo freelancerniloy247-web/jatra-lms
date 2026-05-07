@@ -1,52 +1,16 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ChevronDown, Menu, X, Search } from "lucide-react";
 import { BOOTCAMPS } from "@/lib/data";
 import { bnTaka, bnNumber } from "@/lib/format";
 
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [hidden, setHidden] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
   const [mobile, setMobile] = useState(false);
 
-  useEffect(() => {
-    let lastY = 0;
-    let scheduled = false;
-    let raf = 0;
-
-    function read() {
-      scheduled = false;
-      const y = window.scrollY;
-      const nextScrolled = y > 30;
-      const nextHidden = y > 200 && y > lastY;
-      // setState only when the boolean actually flips — no per-pixel re-renders
-      setScrolled((s) => (s !== nextScrolled ? nextScrolled : s));
-      setHidden((h) => (h !== nextHidden ? nextHidden : h));
-      lastY = y;
-    }
-    function onScroll() {
-      if (scheduled) return;
-      scheduled = true;
-      raf = requestAnimationFrame(read);
-    }
-    read();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-
   return (
-    <header
-      className={`sticky top-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? "bg-bg/85 backdrop-blur-xl border-b border-border/80 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.6)]"
-          : "bg-transparent"
-      } ${hidden ? "-translate-y-full" : "translate-y-0"}`}
-    >
+    <header className="sticky top-0 z-50 bg-bg/95 border-b border-border/70">
       <div className="mx-auto max-w-7xl px-5 md:px-6 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
           <div className="h-8 w-8 rounded-lg bg-gold-gradient grid place-items-center text-bg font-black text-lg shadow-gold">
@@ -67,7 +31,7 @@ export default function Navbar() {
               বুটক্যাম্প <ChevronDown className="h-3.5 w-3.5" />
             </button>
             {megaOpen && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 w-[920px] bg-bg-elevated/95 backdrop-blur-xl border border-border rounded-2xl shadow-card p-6 grid grid-cols-2 gap-x-6 gap-y-2 animate-fade-in">
+              <div className="absolute top-full left-1/2 -translate-x-1/2 w-[920px] bg-bg-elevated border border-border rounded-2xl shadow-card p-6 grid grid-cols-2 gap-x-6 gap-y-2">
                 {BOOTCAMPS.map((b) => (
                   <Link
                     key={b.slug}

@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
 import {
   Shield,
   CheckCircle2,
@@ -200,7 +199,7 @@ export default function JobGuarantee() {
   );
 }
 
-/* ─────────── Stat counter ─────────── */
+/* ─────────── Stat (static — count-up animation removed for perf) ─────────── */
 function Stat({
   value,
   suffix = "",
@@ -212,37 +211,11 @@ function Stat({
   prefix?: string;
   label: string;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [n, setN] = useState(0);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (!e.isIntersecting) return;
-          obs.unobserve(e.target);
-          const dur = 1200;
-          const start = performance.now();
-          const tick = (t: number) => {
-            const k = Math.min(1, (t - start) / dur);
-            const eased = 1 - Math.pow(1 - k, 3);
-            setN(Math.round(value * eased));
-            if (k < 1) requestAnimationFrame(tick);
-          };
-          requestAnimationFrame(tick);
-        });
-      },
-      { threshold: 0.4 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [value]);
   return (
-    <div ref={ref} className="glass rounded-xl px-2 sm:px-3 py-2.5 sm:py-3 border border-white/5 text-center">
+    <div className="glass rounded-xl px-2 sm:px-3 py-2.5 sm:py-3 border border-white/5 text-center">
       <div className="num-mono text-base sm:text-xl md:text-2xl font-bold gold-text leading-tight whitespace-nowrap">
         {prefix}
-        {n}
+        {value}
         {suffix}
       </div>
       <div className="bn text-[10px] sm:text-[11px] text-ink-muted mt-1 leading-tight">{label}</div>

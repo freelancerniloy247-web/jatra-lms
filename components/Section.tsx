@@ -10,7 +10,7 @@ export function Section({
   id?: string;
 }) {
   return (
-    <section id={id} className={`relative py-14 sm:py-20 md:py-28 ${className}`}>
+    <section id={id} className={`cv-auto relative py-14 sm:py-20 md:py-28 ${className}`}>
       <div className="mx-auto max-w-7xl px-4 sm:px-5 md:px-6">{children}</div>
     </section>
   );

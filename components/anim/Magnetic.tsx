@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 export default function Magnetic({
   children,
@@ -11,28 +11,65 @@ export default function Magnetic({
   className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ x: 0, y: 0 });
 
-  function onMove(e: React.MouseEvent) {
+  useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    setPos({ x: x * strength, y: y * strength });
-  }
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(pointer: coarse)").matches) return;
 
-  function reset() {
-    setPos({ x: 0, y: 0 });
-  }
+    let raf = 0;
+    const target = { x: 0, y: 0 };
+    const cur = { x: 0, y: 0 };
+    let scheduled = false;
+    let active = false;
+
+    function schedule() {
+      if (scheduled) return;
+      scheduled = true;
+      raf = requestAnimationFrame(tick);
+    }
+    function tick() {
+      scheduled = false;
+      cur.x += (target.x - cur.x) * 0.22;
+      cur.y += (target.y - cur.y) * 0.22;
+      if (el) el.style.transform = `translate3d(${cur.x.toFixed(2)}px, ${cur.y.toFixed(2)}px, 0)`;
+      if (Math.abs(target.x - cur.x) > 0.05 || Math.abs(target.y - cur.y) > 0.05) schedule();
+    }
+
+    function onMove(e: MouseEvent) {
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      target.x = (e.clientX - rect.left - rect.width / 2) * strength;
+      target.y = (e.clientY - rect.top - rect.height / 2) * strength;
+      schedule();
+    }
+    function onEnter() {
+      active = true;
+      el.addEventListener("mousemove", onMove, { passive: true });
+    }
+    function onLeave() {
+      active = false;
+      el.removeEventListener("mousemove", onMove);
+      target.x = 0;
+      target.y = 0;
+      schedule();
+    }
+
+    el.addEventListener("mouseenter", onEnter);
+    el.addEventListener("mouseleave", onLeave);
+    return () => {
+      el.removeEventListener("mouseenter", onEnter);
+      el.removeEventListener("mouseleave", onLeave);
+      el.removeEventListener("mousemove", onMove);
+      cancelAnimationFrame(raf);
+    };
+  }, [strength]);
 
   return (
     <div
       ref={ref}
-      onMouseMove={onMove}
-      onMouseLeave={reset}
       style={{
-        transform: `translate3d(${pos.x}px, ${pos.y}px, 0)`,
         transition: "transform 400ms cubic-bezier(0.16,1,0.3,1)",
       }}
       className={`inline-block will-change-transform ${className}`}

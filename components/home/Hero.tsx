@@ -10,63 +10,107 @@ import VideoModal from "@/components/VideoModal";
 
 export default function Hero() {
   const heroRef = useRef<HTMLElement>(null);
-  const [mouse, setMouse] = useState({ x: 0, y: 0 });
-  const [scrollY, setScrollY] = useState(0);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const blobRef = useRef<HTMLDivElement>(null);
+  const rightColRef = useRef<HTMLDivElement>(null);
   const [videoOpen, setVideoOpen] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const target = { mx: 0, my: 0, sy: 0 };
+    const cur = { mx: 0, my: 0, sy: 0 };
+    let raf = 0;
+    let inViewport = true;
+    let scheduled = false;
+
     function onMove(e: MouseEvent) {
       const rect = heroRef.current?.getBoundingClientRect();
       if (!rect) return;
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      setMouse({ x, y });
+      target.mx = ((e.clientX - rect.left) / rect.width - 0.5) * 20;
+      target.my = ((e.clientY - rect.top) / rect.height - 0.5) * 20;
+      schedule();
     }
     function onScroll() {
-      setScrollY(window.scrollY);
+      target.sy = window.scrollY;
+      schedule();
     }
-    window.addEventListener("mousemove", onMove);
+    function schedule() {
+      if (scheduled || !inViewport) return;
+      scheduled = true;
+      raf = requestAnimationFrame(tick);
+    }
+    function tick() {
+      scheduled = false;
+      // ease toward target — single GPU-friendly transform per element
+      cur.mx += (target.mx - cur.mx) * 0.18;
+      cur.my += (target.my - cur.my) * 0.18;
+      cur.sy += (target.sy - cur.sy) * 0.2;
+
+      if (gridRef.current) {
+        gridRef.current.style.transform = `translate3d(${cur.mx * 0.3}px, ${cur.my * 0.3 + cur.sy * 0.12}px, 0)`;
+      }
+      if (blobRef.current) {
+        blobRef.current.style.transform = `translate3d(${cur.mx * 1.4}px, ${cur.my * 1.4 + cur.sy * 0.08}px, 0)`;
+      }
+      if (rightColRef.current) {
+        rightColRef.current.style.transform = `translate3d(${-cur.mx * 0.35}px, ${-cur.my * 0.35}px, 0)`;
+      }
+
+      const settled =
+        Math.abs(target.mx - cur.mx) < 0.05 &&
+        Math.abs(target.my - cur.my) < 0.05 &&
+        Math.abs(target.sy - cur.sy) < 0.5;
+      if (!settled) schedule();
+    }
+
+    // pause RAF when hero is offscreen
+    const obs = new IntersectionObserver(
+      ([e]) => { inViewport = e.isIntersecting; if (inViewport) schedule(); },
+      { threshold: 0 }
+    );
+    if (heroRef.current) obs.observe(heroRef.current);
+
+    window.addEventListener("mousemove", onMove, { passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
+    schedule();
     return () => {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(raf);
+      obs.disconnect();
     };
   }, []);
-
-  const px = mouse.x * 20;
-  const py = mouse.y * 20;
 
   return (
     <section
       ref={heroRef}
-      className="relative pt-10 sm:pt-16 md:pt-24 pb-14 sm:pb-20 overflow-hidden grain"
+      className="relative pt-10 sm:pt-16 md:pt-24 pb-14 sm:pb-20 overflow-hidden"
     >
       {/* Aurora */}
       <div className="aurora" />
 
-      {/* Beam */}
-      <div className="beam" />
-
       {/* Grid background — parallax */}
       <div
-        className="absolute inset-0 grid-bg opacity-50 pointer-events-none"
-        style={{ transform: `translate3d(${px * 0.3}px, ${py * 0.3 + scrollY * 0.15}px, 0)` }}
+        ref={gridRef}
+        className="absolute inset-0 grid-bg opacity-40 pointer-events-none will-change-transform"
       />
 
       {/* Spotlight */}
       <div className="absolute inset-0 spotlight pointer-events-none" />
 
-      {/* Particles */}
+      {/* Particles — reduced count, paused offscreen via aurora's animation timing */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {Array.from({ length: 18 }).map((_, i) => (
+        {Array.from({ length: 8 }).map((_, i) => (
           <span
             key={i}
             className="particle"
             style={{
-              left: `${(i * 53) % 100}%`,
-              animationDelay: `${(i * 0.6) % 12}s`,
-              animationDuration: `${15 + (i % 5) * 3}s`,
-              opacity: 0.4 + (i % 4) * 0.15,
+              left: `${(i * 47) % 100}%`,
+              animationDelay: `${(i * 1.2) % 12}s`,
+              animationDuration: `${18 + (i % 4) * 4}s`,
+              opacity: 0.35 + (i % 3) * 0.15,
               width: `${3 + (i % 3)}px`,
               height: `${3 + (i % 3)}px`,
             }}
@@ -76,15 +120,15 @@ export default function Hero() {
 
       {/* Mouse-following gold blob */}
       <div
-        className="absolute pointer-events-none transition-transform duration-300 ease-out"
+        ref={blobRef}
+        className="absolute pointer-events-none will-change-transform hidden md:block"
         style={{
           top: "20%",
           left: "55%",
-          width: 540,
-          height: 540,
-          background: "radial-gradient(circle, rgba(232,179,61,0.18) 0%, transparent 70%)",
-          filter: "blur(40px)",
-          transform: `translate3d(${px * 1.6}px, ${py * 1.6 + scrollY * 0.1}px, 0)`,
+          width: 460,
+          height: 460,
+          background: "radial-gradient(circle, rgba(232,179,61,0.16) 0%, transparent 70%)",
+          filter: "blur(28px)",
         }}
       />
 
@@ -123,9 +167,6 @@ export default function Hero() {
               <Link
                 href="/apply"
                 className="btn-gold btn-gold-rich w-full sm:w-auto px-6 sm:px-7 py-3.5 sm:py-4 rounded-full text-sm sm:text-base bn font-semibold inline-flex items-center justify-center gap-2"
-                data-cursor="lg"
-                data-cursor-text="Apply Now"
-                data-cursor-magnet
               >
                 এখনই আবেদন করুন →
               </Link>
@@ -134,8 +175,6 @@ export default function Hero() {
               <button
                 onClick={() => setVideoOpen(true)}
                 className="btn-ghost w-full sm:w-auto px-5 sm:px-6 py-3.5 sm:py-4 rounded-full text-xs sm:text-sm bn inline-flex items-center justify-center gap-2 group"
-                data-cursor="play"
-                data-cursor-text="Watch"
                 aria-label="Watch how it works video"
               >
                 <span className="h-7 w-7 rounded-full bg-gold/10 grid place-items-center group-hover:bg-gold/20 transition">
@@ -168,10 +207,10 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Right: cinematic alumni stack with parallax + tilt */}
+        {/* Right: alumni stack with parallax */}
         <div
-          className="lg:col-span-5 relative h-[480px] md:h-[560px] hidden md:block"
-          style={{ transform: `translate3d(${-px * 0.4}px, ${-py * 0.4}px, 0)`, transition: "transform 600ms cubic-bezier(0.16,1,0.3,1)" }}
+          ref={rightColRef}
+          className="lg:col-span-5 relative h-[480px] md:h-[560px] hidden md:block will-change-transform"
         >
           <FloatingCard
             name="মীর সাকিব"
@@ -241,7 +280,7 @@ function FloatingCard({
       className={`absolute ${position} w-[260px] md:w-[280px] animate-fade-up ${bob ? "float-bob" : ""}`}
       style={{ animationDelay: `${delay}s`, animationFillMode: "both" }}
     >
-      <Tilt max={12}>
+      <Tilt max={10}>
         <div className="glass rounded-2xl p-3 shadow-card border-draw">
           <div className="relative h-40 rounded-xl overflow-hidden">
             <Image src={photo} alt={name} fill className="object-cover ken-burns" sizes="280px" />

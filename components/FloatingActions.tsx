@@ -1,24 +1,43 @@
 "use client";
 import { Phone, MessageCircle, ArrowUp } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function FloatingActions() {
   const [show, setShow] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const progressRef = useRef<SVGCircleElement>(null);
+  const C = 2 * Math.PI * 22;
 
   useEffect(() => {
-    const onScroll = () => {
-      const y = window.scrollY;
-      setShow(y > 600);
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      setProgress(max > 0 ? Math.min(1, y / max) : 0);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    let raf = 0;
+    let scheduled = false;
 
-  const C = 2 * Math.PI * 22;
+    function update() {
+      scheduled = false;
+      const y = window.scrollY;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = max > 0 ? Math.min(1, y / max) : 0;
+      // visibility: only flip state when crossing the threshold
+      setShow((prev) => {
+        const next = y > 600;
+        return prev !== next ? next : prev;
+      });
+      // ring fill: direct DOM update — no React render
+      if (progressRef.current) {
+        progressRef.current.style.strokeDashoffset = String(C * (1 - pct));
+      }
+    }
+    function onScroll() {
+      if (scheduled) return;
+      scheduled = true;
+      raf = requestAnimationFrame(update);
+    }
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, [C]);
 
   return (
     <div
@@ -31,8 +50,6 @@ export default function FloatingActions() {
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         className="relative h-11 w-11 sm:h-12 sm:w-12 grid place-items-center rounded-full glass border border-white/10 hover:border-gold/50 transition group"
         aria-label="Back to top"
-        data-cursor="lg"
-        data-cursor-text="Top"
       >
         <svg
           className="absolute inset-0 -rotate-90"
@@ -43,6 +60,7 @@ export default function FloatingActions() {
         >
           <circle cx="24" cy="24" r="22" stroke="rgba(255,255,255,0.06)" strokeWidth="2" fill="none" />
           <circle
+            ref={progressRef}
             cx="24"
             cy="24"
             r="22"
@@ -50,7 +68,7 @@ export default function FloatingActions() {
             strokeWidth="2"
             fill="none"
             strokeDasharray={C}
-            strokeDashoffset={C * (1 - progress)}
+            strokeDashoffset={C}
             style={{ transition: "stroke-dashoffset .15s linear" }}
             strokeLinecap="round"
           />
@@ -64,8 +82,6 @@ export default function FloatingActions() {
         rel="noopener noreferrer"
         className="h-11 w-11 sm:h-12 sm:w-12 grid place-items-center rounded-full bg-emerald shadow-lg hover:scale-105 transition"
         aria-label="WhatsApp"
-        data-cursor="lg"
-        data-cursor-text="Chat"
       >
         <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-bg" />
       </a>
@@ -73,8 +89,6 @@ export default function FloatingActions() {
         href="tel:+8801711111111"
         className="h-11 w-11 sm:h-12 sm:w-12 grid place-items-center rounded-full btn-gold hover:scale-105 transition"
         aria-label="Call"
-        data-cursor="lg"
-        data-cursor-text="Call"
       >
         <Phone className="h-4 w-4 sm:h-5 sm:w-5" />
       </a>

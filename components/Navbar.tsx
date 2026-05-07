@@ -13,16 +13,30 @@ export default function Navbar() {
 
   useEffect(() => {
     let lastY = 0;
-    const onScroll = () => {
+    let scheduled = false;
+    let raf = 0;
+
+    function read() {
+      scheduled = false;
       const y = window.scrollY;
-      setScrolled(y > 30);
-      if (y > 200 && y > lastY) setHidden(true);
-      else setHidden(false);
+      const nextScrolled = y > 30;
+      const nextHidden = y > 200 && y > lastY;
+      // setState only when the boolean actually flips — no per-pixel re-renders
+      setScrolled((s) => (s !== nextScrolled ? nextScrolled : s));
+      setHidden((h) => (h !== nextHidden ? nextHidden : h));
       lastY = y;
-    };
-    onScroll();
+    }
+    function onScroll() {
+      if (scheduled) return;
+      scheduled = true;
+      raf = requestAnimationFrame(read);
+    }
+    read();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(raf);
+    };
   }, []);
 
   return (

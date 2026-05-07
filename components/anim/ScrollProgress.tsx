@@ -1,26 +1,43 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 export default function ScrollProgress() {
-  const [pct, setPct] = useState(0);
+  const barRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    function onScroll() {
+    let raf = 0;
+    let scheduled = false;
+
+    function update() {
+      scheduled = false;
       const h = document.documentElement;
       const total = h.scrollHeight - h.clientHeight;
-      setPct(total > 0 ? (h.scrollTop / total) * 100 : 0);
+      const pct = total > 0 ? Math.min(100, (h.scrollTop / total) * 100) : 0;
+      if (barRef.current) barRef.current.style.transform = `scaleX(${pct / 100})`;
     }
-    onScroll();
+    function onScroll() {
+      if (scheduled) return;
+      scheduled = true;
+      raf = requestAnimationFrame(update);
+    }
+    update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      cancelAnimationFrame(raf);
+    };
   }, []);
+
   return (
     <div className="fixed top-0 left-0 right-0 z-[60] h-[2px] bg-transparent pointer-events-none">
       <div
-        className="h-full bg-gold-gradient"
+        ref={barRef}
+        className="h-full bg-gold-gradient origin-left will-change-transform"
         style={{
-          width: `${pct}%`,
+          transform: "scaleX(0)",
           boxShadow: "0 0 12px rgba(232,179,61,0.8)",
-          transition: "width 80ms linear",
         }}
       />
     </div>

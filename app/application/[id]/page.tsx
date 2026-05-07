@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { BOOTCAMPS } from "@/lib/data";
 import { notFound } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 import { bnDate, bnNumber } from "@/lib/format";
 import { Section } from "@/components/Section";
 import { Check, Clock } from "lucide-react";

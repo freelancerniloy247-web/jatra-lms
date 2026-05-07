@@ -5,6 +5,7 @@ import { Section } from "@/components/Section";
 import { bnDate, bnNumber } from "@/lib/format";
 
 export const metadata = { title: "Admin — যাত্রা" };
+export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const user = await getSession();

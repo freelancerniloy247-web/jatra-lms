@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 export const metadata = { title: "Dashboard — যাত্রা" };
+export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const user = await getSession();

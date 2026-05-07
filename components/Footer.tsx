@@ -104,6 +104,27 @@ export default function Footer() {
             © 2026 Jatra · Trade License: TRAD/DSCC/12345/2024 · BIN: 005678901-0001 · DBID: BD-EDU-1024
           </div>
         </div>
+
+        <div className="mt-6 pt-5 border-t border-border/40 text-center text-xs text-ink-dim">
+          Developed by{" "}
+          <a
+            href="https://nasifahammedniloy.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gold hover:text-gold-soft transition link-underline font-semibold"
+          >
+            Niloy
+          </a>{" "}
+          ·{" "}
+          <a
+            href="https://nasifahammedniloy.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="num-mono hover:text-ink transition"
+          >
+            nasifahammedniloy.com
+          </a>
+        </div>
       </div>
     </footer>
   );
